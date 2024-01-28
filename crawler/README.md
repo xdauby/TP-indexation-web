@@ -1,5 +1,5 @@
 
-# Project Title
+# Crawler
 Author : Antoine De Paepe
 
 ## Brief description of ```Crawler```'s methods :
@@ -10,10 +10,7 @@ Author : Antoine De Paepe
 
 * ```is_url_allowed_by_robots``` : Check if an url is crawlable. Need to specify robots.txt path.
 
-* ```get_n_allowed_url_in_border``` : Get self.max_url_by_pages (or less) UNIQUE links founded on the webpage with url (main_url) that are not in self.crawled or 
-            in self.frontier.
-            Need to specify the main url robot (main_url_robot) to check if links founded on the webpage are 
-            crawlable.
+* ```get_n_allowed_url_in_border``` : Get self.max_url_by_pages (or less) UNIQUE links founded on the webpage with url (main_url) that are not in self.crawled or in self.frontier. Need to specify the main url robot (main_url_robot) to check if links founded on the webpage are crawlable.
 
 * ```get_sitemaps_url``` : Given the path of a robots.txt, get all xml links (sitemaps).
 
@@ -22,8 +19,7 @@ Author : Antoine De Paepe
 * ```get_m_allowed_url_in_sitemaps``` : Get self.max_url_by_sitemaps (or less) UNIQUE links founded on the sitemaps indicated on robot.txt (at address main_url_robot) 
             that are not in self.crawled or self.frontier. Need to specify the main url robot (main_url_robot). 
 
-* ```run``` : Implementation of a crawler. The (self.seed) is the url of the first webpage, (self.max_crawled_url) is the
-        maximum number of crawled url to return, (self.politeness_criterion) is the politeness time and (self.max_links_by_pages) is the maximum links by pages that we are allow to crawl. This function is extremely well commented, please check it.
+* ```run``` :  Implementation of a crawler. The (self.seed) is the url of the first webpage, (self.max_crawled_url) is the maximum number of crawled url to return, (self.politeness_criterion) is the politeness time and (self.max_url_by_pages) is the maximum links by pages that we are allow to crawl. If (self.explore_sitemaps) is True, get (self.max_url_by_sitemaps) urls from the sitemaps. This function is extremely well commented, please check it.
 
 ## Brief description of functions :
 
@@ -43,11 +39,11 @@ Author : Antoine De Paepe
 To run the program :
 
 
-`pip install requirements.txt`
+`pip install -r requirements.txt`
 
 Default args :
 
-`seed` : "https://ensai.fr"
+`seed` : https://ensai.fr
 
 `max_crawled_url` : 50
 
@@ -63,10 +59,6 @@ run python code
 
 `python3 main.py`
 
-with different parameters
+Change parameters :
 
-`python3 main.py --seed "https://ensai.fr" --max_crawled_url 100 --politeness_criterion 1.5 --max_url_by_pages 5 --explore_sitemaps True --max_url_by_sitemaps 5`
-
-
-
-
+`python3 main.py --seed "https://ensai.fr" --max_crawled_url 100 --politeness_criterion 3 --max_url_by_pages 5 --explore_sitemaps True --max_url_by_sitemaps 5`

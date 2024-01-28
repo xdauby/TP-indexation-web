@@ -2,7 +2,6 @@ import urllib.request
 import urllib.robotparser
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
-from protego import Protego
 from typing import List
 import time
 import sqlite3
@@ -28,11 +27,11 @@ class Crawler:
                  max_url_by_sitemaps : int) -> None:
         """
         seed : str :: Seed url
-        max_crawled_url : int :: Maximum number of crawled pages
-        politeness_criterion : float :: Politeness criterion
-        max_url_by_pages : int :: Maximum links to add in frontier for each webpages
-        explore_sitemaps : bool :: True if you want to explore sitemaps, False otherwise
-        max_url_by_sitemaps : int :: Maximum urls to add in frontier for urls in sitemaps
+        max_crawled_url : int :: Maximum number of crawled pages.
+        politeness_criterion : float :: Politeness criterion.
+        max_url_by_pages : int :: Maximum links to add in frontier for each webpages.
+        explore_sitemaps : bool :: True if you want to explore sitemaps, False otherwise.
+        max_url_by_sitemaps : int :: Maximum urls to add in frontier for urls in sitemaps.
         """
         self.seed = seed
         self.crawled = set([seed])
@@ -45,7 +44,7 @@ class Crawler:
 
 
     def parse_html(self, url : str) -> List[str]:
-        """ Given an url, get all the links on a webpage """
+        """ Given an url, get all the links on a webpage. """
         links = []
         try:
             response = urllib.request.urlopen(url)
@@ -62,13 +61,13 @@ class Crawler:
         return links
     
     def get_robots_path(self, url : str) -> List[str]:
-        """ Given an url, give the robots.txt path """
+        """ Given an url, give the robots.txt path. """
         parsed_url = urlparse(url)
         robots_url = f"{parsed_url.scheme}://{parsed_url.netloc}/robots.txt"
         return robots_url
 
     def is_url_allowed_by_robots(self, url : str, url_robot : str) -> bool:
-        """ Check if an url is crawlable. Need to specify robots.txt path """ 
+        """ Check if an url is crawlable. Need to specify robots.txt path. """ 
         rp = urllib.robotparser.RobotFileParser(url_robot)
         rp.set_url(url_robot)
         rp.read()
@@ -77,10 +76,8 @@ class Crawler:
     def get_n_allowed_url_in_border(self,
                                     main_url : str,
                                     main_url_robot : str) -> List[str]:
-
         """ Get self.max_url_by_pages (or less) UNIQUE links founded on the webpage with url (main_url) that are not in self.crawled or 
-            in self.frontier.
-            Need to specify the main url robot (main_url_robot) to check if links founded on the webpage are 
+            in self.frontier. Need to specify the main url robot (main_url_robot) to check if links founded on the webpage are 
             crawlable.
         """
         url_to_return = set([])
@@ -89,7 +86,7 @@ class Crawler:
         url_in_border = self.parse_html(main_url)
 
         for url in url_in_border:
-            if (self.is_url_allowed_by_robots(url=url, url_robot=main_url_robot)) and (url not in self.crawled) and (url not in self.frontier):    
+            if ((url not in self.crawled) and (url not in self.frontier) and self.is_url_allowed_by_robots(url=url, url_robot=main_url_robot)):    
                 url_to_return.add(url)  
                 if len(url_to_return) >= self.max_url_by_pages:
                     return url_to_return
@@ -97,7 +94,7 @@ class Crawler:
 
 
     def get_sitemaps_url(self, url_robots : str) -> List[str]:
-        """ Given the path of a robots.txt, get all xml links (sitemaps)"""
+        """ Given the path of a robots.txt, get all xml links (sitemaps). """
         try:
             # Make an HTTP request to get the robots.txt content
             response = requests.get(url_robots)
@@ -109,8 +106,7 @@ class Crawler:
             return []
 
     def get_links_in_sitemaps_from_url(self, url : str) -> List[str]:
-        """ Given an url (.xml), get all the links on a sitemap by parsing the xml."""
-
+        """ Given an url (.xml), get all the links on a sitemap by parsing the xml. """
         try:
             https = urllib3.PoolManager()
             response = https.request('GET', url)
@@ -121,8 +117,7 @@ class Crawler:
             return [] 
 
     def get_m_allowed_url_in_sitemaps(self, main_url_robot : str) -> List[str]:
-
-        """ Get self.max_url_by_sitemaps (or less) UNIQUE links founded on the sitemaps indicated on robot.txt (at address main_url_robot) 
+        """ Get self.max_url_by_sitemaps (or less) UNIQUE links founded in the sitemaps indicated on robot.txt (at address main_url_robot) 
             that are not in self.crawled or self.frontier. Need to specify the main url robot (main_url_robot). 
         """
         url_to_return = set([])
@@ -141,11 +136,11 @@ class Crawler:
     
 
     def run(self) -> List[str]:
-
         """ 
         Implementation of a crawler. The (self.seed) is the url of the first webpage, (self.max_crawled_url) is the
-        maximum number of crawled url to return, (self.politeness_criterion) is the politeness time and (self.max_links_by_pages)
-        is the maximum links by pages that we are allow to crawl.
+        maximum number of crawled url to return, (self.politeness_criterion) is the politeness time and (self.max_url_by_pages)
+        is the maximum links by pages that we are allow to crawl. If (self.explore_sitemaps) is True, get (self.max_url_by_sitemaps) urls
+        from the sitemaps.
         """
     
         # Get robot.txt path on the seed website
@@ -173,12 +168,15 @@ class Crawler:
                 if self.explore_sitemaps:
                     urls_to_add_in_frontier = self.get_m_allowed_url_in_sitemaps(main_url_robot=robots_txt_path)
                     self.frontier += list(urls_to_add_in_frontier)
-
+                  
                 # Here, we parse the current url website (check the function docs) to get n links inside the page (or less if so)
                 urls_to_add_in_frontier = self.get_n_allowed_url_in_border(main_url=url,
                                                                            main_url_robot=robots_txt_path)
 
+                # Add to frontier
                 self.frontier += list(urls_to_add_in_frontier)
+                
+                # Move from frontier to crawled
                 self.frontier.remove(url)
                 self.crawled.add(url)
 
@@ -193,9 +191,9 @@ class Crawler:
         return self.crawled
 
     def display_info(self) -> None:
+        """ Display infos. """
         print(f'%%% {len(self.crawled)} / {self.max_crawled_url} crawled %%%')
-        #for elmt in self.crawled:
-        #    print(elmt)
+
 
 
 ### SLQ and backup related ### 
@@ -228,13 +226,13 @@ def update_age(database_name:str, url:str) -> None:
     return
 
 def save(urls : List[str], file : str = 'crawled_webpages.txt') -> None:
+    ''' Save a list in a .txt file. '''
     with open(file, 'w') as fp:
         for item in urls:
             fp.write("%s\n" % item)
     return 
 
 ### --- ###
-
 
 
 def main() -> None:
@@ -248,8 +246,8 @@ def main() -> None:
     parser.add_argument('--max_crawled_url', '-mcu', default=50)
     parser.add_argument('--politeness_criterion', '-pc', default=3)
     parser.add_argument('--max_url_by_pages', '-mbp', default=5)
-    parser.add_argument('--explore_sitemaps', '-es', default=True)
-    parser.add_argument('--max_url_by_sitemaps', '-mbs', default=5)
+    parser.add_argument('--explore_sitemaps', '-es', default="False")
+    parser.add_argument('--max_url_by_sitemaps', '-mbs', default=0)
     args = parser.parse_args()
 
     # Retrieve args
@@ -257,7 +255,7 @@ def main() -> None:
     max_crawled_url = int(args.max_crawled_url)
     politeness_criterion = float(args.politeness_criterion)
     max_url_by_pages = int(args.max_url_by_pages)
-    explore_sitemaps = bool(args.explore_sitemaps)
+    explore_sitemaps = eval(args.explore_sitemaps)
     max_url_by_sitemaps = int(args.max_url_by_sitemaps)
     
     print(" --------------------- ")
@@ -269,7 +267,8 @@ def main() -> None:
     print(f"explore_sitemaps : {explore_sitemaps}")  
     print(f"max_url_by_sitemaps : {max_url_by_sitemaps}")  
     print(" --------------------- ")
-
+    
+    print("Crawler is setting up ...")
 
     # init the crawler
     crawler = Crawler(seed = seed, 
