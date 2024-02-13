@@ -140,20 +140,6 @@ class Ranker:
 
 
 
-
-
-if __name__ == "__main__":
-    tokenizer = Tokenizer()
-    request = "Erreur en informatique"
-    with open('title_pos_index.json', 'r') as json_file:
-        title_index = json.load(json_file)
-    
-    with open('documents.json', 'r') as json_file:
-        documents = json.load(json_file)
-    
-
-
-
 def main() -> None:
     #nltk.download()
     
